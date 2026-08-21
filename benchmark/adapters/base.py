@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+﻿from abc import ABC, abstractmethod
 
 
 class GraphDBAdapter(ABC):
@@ -46,11 +46,36 @@ class GraphDBAdapter(ABC):
 
     @abstractmethod
     def two_hop(self, start_user_id: int) -> list:
-        """Users who rated at least one movie in common with the start user."""
+        """Other users, excluding the start user, who rated at least one
+        movie the start user also rated ("co-raters").
+
+        The start user must be excluded by an explicit condition in every
+        adapter's query (e.g. `WHERE u2.id <> $id`), never left to a query
+        language's incidental relationship/edge-uniqueness behavior --
+        Cypher happens to drop some self-matches as a side effect of its
+        per-pattern relationship-uniqueness rule, but that behavior is
+        edge-reuse-dependent and not equivalent to this definition, so it
+        must not be relied upon.
+        """
 
     @abstractmethod
     def three_hop(self, start_user_id: int) -> list:
-        """Movies rated by users who share a movie in common with the start user."""
+        """Movies rated by any user in two_hop(start_user_id)'s result set.
+
+        Defined purely as an expansion of that user set -- independent of
+        which specific edge was used to identify a co-rater. This may
+        legitimately include a movie the start user has already rated, if
+        a co-rater also rated it; that is not deduplicated away.
+
+        Every adapter must compute this as two explicit stages -- (1) the
+        same co-rater set as two_hop, (2) movies rated by that set -- so
+        the result is identical in shape across query languages regardless
+        of a language's relationship/edge-uniqueness semantics. A single
+        flat multi-hop pattern must not be used if the query language's
+        pattern-matching semantics could silently drop results through
+        edge reuse (this is exactly what a naive single-MATCH Cypher
+        pattern does, empirically confirmed during adapter development).
+        """
 
     @abstractmethod
     def point_lookup(self, user_id: int) -> dict:
@@ -75,3 +100,4 @@ class GraphDBAdapter(ABC):
         Any field that cannot be observed must be set to the string
         'not observable' rather than omitted or guessed.
         """
+

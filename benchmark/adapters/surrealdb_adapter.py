@@ -1,4 +1,4 @@
-import time
+﻿import time
 
 from surrealdb import SurrealDB, RecordID
 
@@ -22,9 +22,13 @@ class SurrealDBAdapter(GraphDBAdapter):
     dotted expressions in that position (confirmed via probing), so bulk
     edge creation binds each row's endpoints through LET first.
 
-    two_hop/three_hop deduplicate in Python to match the `RETURN DISTINCT`
-    used by the equivalent Cypher queries in bolt_adapter.py -- the raw
-    graph traversal can revisit the same node via multiple paths.
+    two_hop/three_hop dedupe results (the raw graph traversal can revisit
+    the same node via multiple paths) and, per the common workload
+    definition in base.py, explicitly exclude the start user from the
+    co-rater set rather than relying on any language's incidental
+    edge-uniqueness behavior. three_hop stages this as (1) the co-rater
+    set with the start user removed, (2) movies rated by that set --
+    matching the Bolt/Cypher and Arango adapters' staged implementations.
 
     Ids are stored as strings (required for the identity match above) but
     converted back to int at every method boundary, matching the native
@@ -158,18 +162,35 @@ class SurrealDBAdapter(GraphDBAdapter):
         rows = result[0]["result"]
         if not rows:
             return []
-        return sorted({int(usr.id) for usr in rows[0]["users"]})
+        return sorted({int(usr.id) for usr in rows[0]["users"]} - {start_user_id})
 
     def three_hop(self, start_user_id: int) -> list:
+        # Staged as two explicit steps within one query (LET the co-rater
+        # set, exclude the start user via array::complement, then expand
+        # to their rated movies) -- a deliberate expansion of the same
+        # co-rater set two_hop uses, not a single flat multi-hop pattern.
+        # SurrealQL's plain traversal has no relationship-uniqueness
+        # constraint, so this naturally includes a movie even if reached
+        # via the same edge that identified the co-rater; that is the
+        # intended semantic (see base.py's three_hop docstring), not
+        # something to "fix" by excluding it.
         u = RecordID("user", str(start_user_id))
         result = self._db.query(
-            "SELECT ->rated->movie<-rated<-user->rated->movie AS movies FROM $u",
+            """
+            LET $co_raters = (SELECT VALUE ->rated->movie<-rated<-user FROM $u)[0];
+            LET $others = array::complement($co_raters, [$u]);
+            SELECT VALUE array::distinct(->rated->movie) FROM $others;
+            """,
             {"u": u},
         )
-        rows = result[0]["result"]
+        rows = result[-1]["result"]
         if not rows:
             return []
-        return sorted({int(m.id) for m in rows[0]["movies"]})
+        movies = set()
+        for arr in rows:
+            for m in arr:
+                movies.add(int(m.id))
+        return sorted(movies)
 
     def point_lookup(self, user_id: int) -> dict:
         record = self._db.select(RecordID("user", str(user_id)))
@@ -201,3 +222,4 @@ class SurrealDBAdapter(GraphDBAdapter):
 
     def get_footprint(self) -> dict:
         return {"note": "not observable"}
+

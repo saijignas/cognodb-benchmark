@@ -1,4 +1,4 @@
-"""
+﻿"""
 Generalized correctness smoke test, run against one platform's own live
 connection at a time. Loads a small, hand-verified synthetic dataset and
 asserts every GraphDBAdapter method against exact expected values --
@@ -27,12 +27,18 @@ Synthetic dataset used by every platform:
     ratings: 1->10(5), 2->10(4), 2->20(3), 3->20(2)
     genre_edges: 10-Action, 20-Film-Noir
 
-Hand-derived expected results:
-    one_hop(2)    -> movies user 2 rated                         = [10, 20]
-    two_hop(1)    -> users who share a rated movie with user 1
-                     (user 1 shares movie 10 with itself and user 2) = [1, 2]
-    three_hop(1)  -> movies rated by users who share a movie with 1
-                     (via user 1: movie 10 again; via user 2: 10, 20) = [10, 20]
+Hand-derived expected results (two_hop/three_hop per the common workload
+definition in base.py: two_hop is other users, excluding the start user,
+who share a rated movie; three_hop is movies rated by that user set):
+    one_hop(2)    -> movies user 2 rated                          = [10, 20]
+    two_hop(1)    -> user 1 rated movie 10; other users who also
+                     rated movie 10 (excluding user 1 itself)      = [2]
+    three_hop(1)  -> movies rated by two_hop(1)'s set ({2}):
+                     user 2 rated 10 and 20                        = [10, 20]
+    two_hop(2)    -> user 2 rated {10, 20}; other users who rated
+                     10 (user 1) or 20 (user 3), excluding user 2  = [1, 3]
+    three_hop(2)  -> movies rated by two_hop(2)'s set ({1, 3}):
+                     user 1 rated 10, user 3 rated 20              = [10, 20]
     point_lookup(3)          -> {"id": 3}
     indexed_lookup("Beta")   -> [20]
     aggregation()            -> Action: 1, Film-Noir: 1
@@ -102,12 +108,20 @@ def run(adapter):
     print("  one_hop(2):", one)
 
     two = adapter.two_hop(1)
-    ok &= check("two_hop(1) == [1, 2]", sorted(two) == [1, 2])
+    ok &= check("two_hop(1) == [2]", sorted(two) == [2])
     print("  two_hop(1):", two)
 
     three = adapter.three_hop(1)
     ok &= check("three_hop(1) == [10, 20]", sorted(three) == [10, 20])
     print("  three_hop(1):", three)
+
+    two_b = adapter.two_hop(2)
+    ok &= check("two_hop(2) == [1, 3]", sorted(two_b) == [1, 3])
+    print("  two_hop(2):", two_b)
+
+    three_b = adapter.three_hop(2)
+    ok &= check("three_hop(2) == [10, 20]", sorted(three_b) == [10, 20])
+    print("  three_hop(2):", three_b)
 
     pl = adapter.point_lookup(3)
     ok &= check("point_lookup(3) == {'id': 3}", pl == {"id": 3})
@@ -159,3 +173,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

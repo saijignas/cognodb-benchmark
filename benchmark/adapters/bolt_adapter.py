@@ -1,4 +1,4 @@
-import time
+﻿import time
 
 from neo4j import GraphDatabase
 
@@ -109,6 +109,7 @@ class BoltCypherAdapter(GraphDBAdapter):
             result = session.run(
                 """
                 MATCH (u:User {id: $id})-[:RATED]->(:Movie)<-[:RATED]-(u2:User)
+                WHERE u2.id <> $id
                 RETURN DISTINCT u2.id AS id
                 """,
                 id=start_user_id,
@@ -116,10 +117,20 @@ class BoltCypherAdapter(GraphDBAdapter):
             return [r["id"] for r in result]
 
     def three_hop(self, start_user_id: int) -> list:
+        # Staged as two separate MATCH clauses joined by WITH so Cypher's
+        # per-pattern relationship-uniqueness rule (no single relationship
+        # reused twice within one MATCH) cannot silently drop a co-rater's
+        # movie just because it happens to be reached via the same edge
+        # that identified them as a co-rater. See base.py's docstring for
+        # why this must be a staged expansion of the two_hop user set
+        # rather than one flat multi-hop pattern.
         with self._driver.session() as session:
             result = session.run(
                 """
-                MATCH (u:User {id: $id})-[:RATED]->(:Movie)<-[:RATED]-(:User)-[:RATED]->(m2:Movie)
+                MATCH (u:User {id: $id})-[:RATED]->(:Movie)<-[:RATED]-(u2:User)
+                WHERE u2.id <> $id
+                WITH DISTINCT u2
+                MATCH (u2)-[:RATED]->(m2:Movie)
                 RETURN DISTINCT m2.id AS id
                 """,
                 id=start_user_id,
@@ -166,3 +177,4 @@ class BoltCypherAdapter(GraphDBAdapter):
 
     def get_footprint(self) -> dict:
         return {"note": "not observable"}
+

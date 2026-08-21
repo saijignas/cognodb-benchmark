@@ -1,4 +1,4 @@
-import time
+﻿import time
 
 from arango import ArangoClient
 
@@ -99,27 +99,36 @@ class ArangoDBAdapter(GraphDBAdapter):
             """
             FOR m IN OUTBOUND @start rated
               FOR u2 IN INBOUND m rated
+                FILTER u2.id != @start_id
                 RETURN DISTINCT u2.id
             """,
-            bind_vars={"start": f"users/{start_user_id}"},
+            bind_vars={"start": f"users/{start_user_id}", "start_id": start_user_id},
         )
         return list(cursor)
 
     def three_hop(self, start_user_id: int) -> list:
+        # Filters the intermediate co-rater set exactly like two_hop before
+        # expanding to their rated movies, so this is a staged expansion of
+        # the same user set rather than a single flat multi-hop pattern --
+        # AQL has no relationship-uniqueness constraint (unlike Cypher), so
+        # this naturally returns a movie even if it's reached via the same
+        # edge that identified the co-rater; that is the intended semantic
+        # (see base.py's three_hop docstring), not an AQL quirk to correct.
         cursor = self._db.aql.execute(
             """
             FOR m IN OUTBOUND @start rated
               FOR u2 IN INBOUND m rated
+                FILTER u2.id != @start_id
                 FOR m2 IN OUTBOUND u2 rated
                   RETURN DISTINCT m2.id
             """,
-            bind_vars={"start": f"users/{start_user_id}"},
+            bind_vars={"start": f"users/{start_user_id}", "start_id": start_user_id},
         )
         return list(cursor)
 
     def point_lookup(self, user_id: int) -> dict:
         doc = self._db.collection("users").get(str(user_id))
-        return dict(doc) if doc else {}
+        return {"id": doc["id"]} if doc else {}
 
     def indexed_lookup(self, movie_title: str) -> list:
         cursor = self._db.aql.execute(
@@ -132,7 +141,8 @@ class ArangoDBAdapter(GraphDBAdapter):
         cursor = self._db.aql.execute(
             """
             FOR e IN has_genre
-              COLLECT genre = e._to WITH COUNT INTO count
+              COLLECT genre = DOCUMENT(e._to).name WITH COUNT INTO count
+              SORT count DESC
               RETURN {genre, count}
             """
         )
@@ -149,3 +159,4 @@ class ArangoDBAdapter(GraphDBAdapter):
             return {"rated_collection_stats": stats}
         except Exception:
             return {"note": "not observable"}
+
