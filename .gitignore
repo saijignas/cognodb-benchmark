@@ -6,3 +6,4 @@ venv/
 results/raw/*.jsonl
 *.egg-info/
 .pytest_cache/
+data/
