@@ -107,20 +107,30 @@ class ArangoDBAdapter(GraphDBAdapter):
         return list(cursor)
 
     def three_hop(self, start_user_id: int) -> list:
-        # Filters the intermediate co-rater set exactly like two_hop before
-        # expanding to their rated movies, so this is a staged expansion of
-        # the same user set rather than a single flat multi-hop pattern --
-        # AQL has no relationship-uniqueness constraint (unlike Cypher), so
-        # this naturally returns a movie even if it's reached via the same
-        # edge that identified the co-rater; that is the intended semantic
-        # (see base.py's three_hop docstring), not an AQL quirk to correct.
+        # Stages the co-rater set exactly like two_hop -- computed and
+        # deduplicated via RETURN DISTINCT inside the co_raters subquery --
+        # BEFORE expanding to rated movies. The previous version filtered
+        # u2 but never deduplicated it before the final FOR loop, so a
+        # co-rater sharing K movies with the start user had their full
+        # rated-movie list re-expanded K times instead of once. On the
+        # real MovieLens data this caused a genuine combinatorial blowup
+        # (confirmed empirically: a single three_hop call hung for 90+
+        # minutes under the 0.5 CPU cap during the real benchmark run).
+        # This mirrors the Bolt/Cypher adapter's "WITH DISTINCT u2" staging
+        # and the SurrealDB adapter's array::distinct staging -- all three
+        # now correctly implement "the co-rater set" as a set, per the
+        # workload definition in base.py, rather than a set in name only.
         cursor = self._db.aql.execute(
             """
-            FOR m IN OUTBOUND @start rated
-              FOR u2 IN INBOUND m rated
-                FILTER u2.id != @start_id
-                FOR m2 IN OUTBOUND u2 rated
-                  RETURN DISTINCT m2.id
+            LET co_raters = (
+              FOR m IN OUTBOUND @start rated
+                FOR u2 IN INBOUND m rated
+                  FILTER u2.id != @start_id
+                  RETURN DISTINCT u2
+            )
+            FOR u2 IN co_raters
+              FOR m2 IN OUTBOUND u2 rated
+                RETURN DISTINCT m2.id
             """,
             bind_vars={"start": f"users/{start_user_id}", "start_id": start_user_id},
         )
