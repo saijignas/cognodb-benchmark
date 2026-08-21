@@ -1,4 +1,30 @@
-﻿import time
+﻿import functools
+import time
+
+import surrealdb.connection_ws as _surrealdb_connection_ws
+
+# The surrealdb Python client's WebsocketConnection.connect() calls
+# websockets.asyncio.client.connect() with no `max_size` override, so it
+# inherits that library's 1 MiB (1,048,576 byte) default incoming-message
+# limit -- confirmed via inspect.signature(). On real, densely connected
+# MovieLens data, a correct (properly deduplicated) three_hop result can
+# legitimately exceed 1 MiB: MovieLens exhibits a "small world" property
+# where even a sparse user's co-rater set reaches a large fraction of the
+# whole movie catalog within two hops (confirmed empirically -- user 926,
+# with only 20 ratings, correctly produces all 1,682 movies in the
+# dataset, a 1,162,895-byte CBOR response). This is not a bug in the
+# query, not a server resource-limit problem, and not something to fix by
+# capping the result -- it is an artificial client-side networking
+# ceiling unrelated to the server's own CPU/memory constraints. There is
+# no public parameter on SurrealDB() to configure this, so the
+# underlying websockets.connect call is wrapped here, once at import
+# time, to remove the limit entirely (max_size=None) rather than
+# truncating any query result. Verified this does not increase server
+# memory usage: peak observed was 243.9 MiB/512 MiB even for the
+# full-catalog result above.
+_surrealdb_connection_ws.connect = functools.partial(
+    _surrealdb_connection_ws.connect, max_size=None
+)
 
 from surrealdb import SurrealDB, RecordID
 
@@ -174,10 +200,33 @@ class SurrealDBAdapter(GraphDBAdapter):
         # via the same edge that identified the co-rater; that is the
         # intended semantic (see base.py's three_hop docstring), not
         # something to "fix" by excluding it.
+        #
+        # The raw traversal ->rated->movie<-rated<-user is NOT
+        # deduplicated by SurrealQL itself: a co-rater who shares K
+        # movies with the start user appears K times in that array.
+        # array::complement only removes exact matches to $u -- it does
+        # not deduplicate the remaining entries. Without the
+        # array::distinct() wrapped around the raw traversal below, the
+        # final `FROM $others` stage would independently re-traverse and
+        # materialize that co-rater's full rated-movie list once per
+        # duplicate occurrence, instead of once per unique co-rater. On
+        # tiny synthetic data no co-rater ever shares more than one movie
+        # with the start user, so this was invisible in the smoke test;
+        # on the real, densely connected MovieLens data (a popular movie
+        # can have hundreds of raters, many of whom share several movies
+        # with any given start user) this caused a genuine memory spike
+        # that OOM-killed the server (confirmed empirically, independent
+        # of the underlying storage backend -- switching from in-memory
+        # to RocksDB did not help, since the problem is transient
+        # per-query materialization, not data residency). Deduplicating
+        # the co-rater set immediately after the raw traversal bounds it
+        # to the number of *unique* co-raters before any expansion
+        # happens, which is what "the co-rater set" in base.py's
+        # docstring actually means.
         u = RecordID("user", str(start_user_id))
         result = self._db.query(
             """
-            LET $co_raters = (SELECT VALUE ->rated->movie<-rated<-user FROM $u)[0];
+            LET $co_raters = array::distinct((SELECT VALUE ->rated->movie<-rated<-user FROM $u)[0]);
             LET $others = array::complement($co_raters, [$u]);
             SELECT VALUE array::distinct(->rated->movie) FROM $others;
             """,
