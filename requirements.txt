@@ -1,0 +1,6 @@
+neo4j>=5.26,<6
+python-arango>=8.1,<9
+surrealdb>=0.4,<1
+python-dotenv>=1.0,<2
+numpy>=1.26,<3
+pytest>=8.0,<9
