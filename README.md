@@ -548,10 +548,10 @@ are ever committed.
   performance question.
 - CognoDB's latency for simple lookups is dominated by network round-trip
   time rather than server-side execution cost.
-- All five platforms sustain zero-error concurrent read/write throughput at
-  the required 10-client concurrency, though absolute throughput spans
-  nearly an order of magnitude (CognoDB: 46.4 ops/s total vs. Memgraph:
-  448.0 ops/s total).
+- All five platforms were tested at a stated concurrency of 10 clients;
+  all five runs completed with zero errors, though absolute throughput
+  spans nearly an order of magnitude (CognoDB: 46.4 ops/s total vs.
+  Memgraph: 448.0 ops/s total).
 
 **Should NOT be claimed from this data:**
 - That any platform's storage efficiency or storage-bound behavior is
