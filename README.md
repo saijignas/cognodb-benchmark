@@ -77,18 +77,19 @@ than committed — see Reproducibility) was loaded into every platform.
 
 ## 4. Resource Configuration
 
-**CPU / RAM / swap — identical and hard-enforced for all five platforms:**
+
+**CPU / RAM — matched across all five platforms:**
 
 - 0.5 vCPU
 - 512 MiB RAM
-- 512 MiB swap
 
-For the four local platforms this is enforced via Docker cgroups
-(`--cpus=0.5 --memory=512m --memory-swap=512m`) and independently confirmed
-via `docker stats` and `OOMKilled` state during testing. For CognoDB, these
-are the platform's own documented limits for the benchmark instance (Free
-plan), read directly from the CognoDB Cloud dashboard for the actual
-instance used (`db-d86bc947`):
+For the four local platforms these are hard-enforced via Docker cgroups
+(`--cpus=0.5 --memory=512m`). For CognoDB, the actual benchmark instance
+reported a burst ceiling of 0.5 vCPU and 512 MB memory in the CognoDB Cloud
+dashboard.
+
+**Local container swap:** the four local platforms were additionally
+configured with a 512 MiB swap ceiling (`--memory-swap=512m`).
 
 - **vCPU:** burst to 0.5 vCPU
 - **Memory:** 512 MB
@@ -224,22 +225,20 @@ hiding a problem — exhausted retries are recorded as `connection_errors`,
 never silently dropped.
 
 **Correction applied before final submission:** the benchmark was initially
-run and fully validated at 8 workers. Concurrency benchmarks of this kind
-are conventionally reported at a client count in the 10-40 range, so the
-concurrency-only workload (not the full benchmark) was re-run at a stated
-concurrency of **10 clients** — a 30-second sustained run, 80% `one_hop`
-reads / 20% `mixed_write` writes — using the identical runner code, barrier
-synchronization, and resource limits; only the worker count changed. These
-10-client results are the ones reported as final in Section 9; the original
-8-client measurements remain in `results/raw/*_concurrent.jsonl` as
-untouched historical/engineering evidence (see `results/concurrency-10client/`
-for the corrected data).
+run and fully validated at 8 workers. The concurrency-only workload (not the
+full benchmark) was re-run at a stated concurrency of **10 clients** — a
+30-second sustained run, 80% `one_hop` reads / 20% `mixed_write` writes —
+using the identical runner code, barrier synchronization, and resource
+limits; only the worker count changed. These 10-client results are the ones
+reported as final in Section 9; the original 8-client measurements remain
+in `results/raw/*_concurrent.jsonl` as untouched historical/engineering
+evidence (see `results/concurrency-10client/` for the corrected data).
 
 ## 9. Full Results Matrix
 
-*512 MiB RAM / 0.5 vCPU / 512 MiB swap for every platform. 100 measured
-iterations per latency workload after 20 discarded warm-up iterations.
-All raw data: `results/raw/*.jsonl` and `results/concurrency-10client/raw/*.jsonl`.*
+*512 MiB RAM / 0.5 vCPU for all five platforms; 512 MiB swap ceiling for
+the four local containers. 100 measured iterations per latency workload
+after 20 discarded warm-up iterations.*
 
 ### Ingestion
 
@@ -604,7 +603,7 @@ evidence, not ignored.
 **Strongly supported by the data:**
 - Memgraph is the fastest platform tested for ingest and the majority of
   latency workloads, with the tightest p50-to-p95 spread, under matched
-  CPU/RAM/swap ceilings identical to every other platform (Section 4).
+  CPU/RAM ceilings, with storage parity limitations disclosed in Section 10.
 - ArangoDB's `three_hop`, even after its correctness fix, is measurably the
   slowest `three_hop` among all local platforms.
 - Neo4j cannot function at all under a 256 MiB memory ceiling — a hard,
