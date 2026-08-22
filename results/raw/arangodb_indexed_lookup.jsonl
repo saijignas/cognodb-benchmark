@@ -1,0 +1,1 @@
+{"platform": "arangodb", "workload": "indexed_lookup", "recorded_at": 1787342558.351945, "label": "indexed_lookup", "count": 100, "errors": 0, "p50_ms": 1.3985949990455993, "p95_ms": 1.8839780991584114, "mean_ms": 1.5171007599928998, "min_ms": 1.3025309999648016, "max_ms": 4.485790999751771, "stddev_ms": 0.42653741389276295}

@@ -1,0 +1,1 @@
+{"platform": "surrealdb", "workload": "indexed_lookup", "recorded_at": 1787345446.2856042, "label": "indexed_lookup", "count": 100, "errors": 0, "p50_ms": 1.3276375002533314, "p95_ms": 1.9056219500271219, "mean_ms": 2.0600474800448865, "min_ms": 1.2077440005668905, "max_ms": 34.41105499950936, "stddev_ms": 4.558857958122266}

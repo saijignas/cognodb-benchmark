@@ -1,0 +1,1 @@
+{"platform": "surrealdb", "workload": "point_lookup", "recorded_at": 1787345446.0272086, "label": "point_lookup", "count": 100, "errors": 0, "p50_ms": 0.8442605003438075, "p95_ms": 1.1532363506375984, "mean_ms": 1.0791702899769007, "min_ms": 0.778993999119848, "max_ms": 18.435764000969357, "stddev_ms": 1.7514796730251345}

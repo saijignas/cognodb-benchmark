@@ -1,0 +1,1 @@
+{"platform": "memgraph", "workload": "ingest", "recorded_at": 1787336127.2126844, "load_start": 1787336124.4657161, "load_end": 1787336127.2125475, "wall_clock_seconds": 2.7468314170837402, "nodes_loaded": 2644, "relationships_loaded": 102893, "nodes_per_second": 962.5636227821675, "relationships_per_second": 37458.79683771769}

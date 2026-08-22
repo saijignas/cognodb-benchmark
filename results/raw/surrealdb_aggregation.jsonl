@@ -1,0 +1,1 @@
+{"platform": "surrealdb", "workload": "aggregation", "recorded_at": 1787345534.1046348, "label": "aggregation", "count": 100, "errors": 0, "p50_ms": 8.804303500255628, "p95_ms": 63.52513870042457, "mean_ms": 20.97651529000359, "min_ms": 7.9985739994299365, "max_ms": 88.38875299989013, "stddev_ms": 22.52799876270169}

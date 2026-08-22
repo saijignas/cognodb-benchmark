@@ -1,0 +1,1 @@
+{"platform": "surrealdb", "workload": "ingest", "recorded_at": 1787345445.9016857, "load_start": 1787345422.8061101, "load_end": 1787345445.9013975, "wall_clock_seconds": 23.095287322998047, "nodes_loaded": 2644, "relationships_loaded": 102893, "nodes_per_second": 114.48223020664187, "relationships_per_second": 4455.151328537066}

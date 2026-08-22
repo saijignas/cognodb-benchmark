@@ -1,0 +1,1 @@
+{"platform": "memgraph", "workload": "one_hop", "recorded_at": 1787336127.9265614, "label": "one_hop", "count": 100, "errors": 0, "p50_ms": 2.3398764999456034, "p95_ms": 6.254232300102557, "mean_ms": 2.9198314200266395, "min_ms": 1.2196659999972326, "max_ms": 10.153217000151926, "stddev_ms": 1.6797724307053437}

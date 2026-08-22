@@ -1,0 +1,1 @@
+{"platform": "cognodb", "workload": "indexed_lookup", "recorded_at": 1787335541.707296, "label": "indexed_lookup", "count": 100, "errors": 0, "p50_ms": 197.7950929999679, "p95_ms": 199.09548615021322, "mean_ms": 197.9619656500381, "min_ms": 197.44301100035955, "max_ms": 201.08132999985173, "stddev_ms": 0.6110723898064196}

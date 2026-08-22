@@ -1,0 +1,1 @@
+{"platform": "cognodb", "workload": "two_hop", "recorded_at": 1787335607.8627834, "label": "two_hop", "count": 100, "errors": 0, "p50_ms": 321.15230149975105, "p95_ms": 604.7204189497052, "mean_ms": 350.78233869996893, "min_ms": 223.249327999838, "max_ms": 722.6436939999985, "stddev_ms": 118.23094133833916}

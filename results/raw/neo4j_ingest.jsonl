@@ -1,0 +1,1 @@
+{"platform": "neo4j", "workload": "ingest", "recorded_at": 1787335988.2274492, "load_start": 1787335943.5379705, "load_end": 1787335988.2273107, "wall_clock_seconds": 44.689340114593506, "nodes_loaded": 2644, "relationships_loaded": 102893, "nodes_per_second": 59.163997347470115, "relationships_per_second": 2302.405892236476}

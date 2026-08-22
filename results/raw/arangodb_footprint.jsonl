@@ -1,0 +1,1 @@
+{"platform": "arangodb", "workload": "footprint", "recorded_at": 1787342952.3208184, "rated_collection_stats": {"indexes": {"count": 2, "size": 10290464}, "documents_size": 11725707, "cache_in_use": false, "cache_size": 0, "cache_usage": 0}}

@@ -1,0 +1,1 @@
+{"platform": "arangodb", "workload": "two_hop", "recorded_at": 1787342636.7412605, "label": "two_hop", "count": 100, "errors": 0, "p50_ms": 500.8071624997683, "p95_ms": 1708.5412604493285, "mean_ms": 675.2607252600319, "min_ms": 103.25533600007475, "max_ms": 2567.7518659995258, "stddev_ms": 516.5396965222678}

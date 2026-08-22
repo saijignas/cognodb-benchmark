@@ -1,0 +1,102 @@
+{
+  "ingest": {
+    "load_start": 1787342551.7472057,
+    "load_end": 1787342558.0124912,
+    "wall_clock_seconds": 6.265285491943359,
+    "nodes_loaded": 2644,
+    "relationships_loaded": 102893,
+    "nodes_per_second": 422.00790425272174,
+    "relationships_per_second": 16422.71531477886
+  },
+  "point_lookup": {
+    "label": "point_lookup",
+    "count": 100,
+    "errors": 0,
+    "p50_ms": 1.1189625001861714,
+    "p95_ms": 1.623274400117225,
+    "mean_ms": 1.2289332000182185,
+    "min_ms": 1.0210260006715544,
+    "max_ms": 3.098451999903773,
+    "stddev_ms": 0.3119426865231903
+  },
+  "indexed_lookup": {
+    "label": "indexed_lookup",
+    "count": 100,
+    "errors": 0,
+    "p50_ms": 1.3985949990455993,
+    "p95_ms": 1.8839780991584114,
+    "mean_ms": 1.5171007599928998,
+    "min_ms": 1.3025309999648016,
+    "max_ms": 4.485790999751771,
+    "stddev_ms": 0.42653741389276295
+  },
+  "one_hop": {
+    "label": "one_hop",
+    "count": 100,
+    "errors": 0,
+    "p50_ms": 2.5292950003859005,
+    "p95_ms": 6.579183949270369,
+    "mean_ms": 4.017317860052572,
+    "min_ms": 1.7140889995062025,
+    "max_ms": 57.96941799962951,
+    "stddev_ms": 7.05785718473363
+  },
+  "two_hop": {
+    "label": "two_hop",
+    "count": 100,
+    "errors": 0,
+    "p50_ms": 500.8071624997683,
+    "p95_ms": 1708.5412604493285,
+    "mean_ms": 675.2607252600319,
+    "min_ms": 103.25533600007475,
+    "max_ms": 2567.7518659995258,
+    "stddev_ms": 516.5396965222678
+  },
+  "three_hop": {
+    "label": "three_hop",
+    "count": 100,
+    "errors": 0,
+    "p50_ms": 2398.5760365003443,
+    "p95_ms": 3854.001658200468,
+    "mean_ms": 2543.343831040056,
+    "min_ms": 1703.2446860011987,
+    "max_ms": 4289.617337000891,
+    "stddev_ms": 603.1581815346303
+  },
+  "aggregation": {
+    "label": "aggregation",
+    "count": 100,
+    "errors": 0,
+    "p50_ms": 72.51162499869679,
+    "p95_ms": 80.31153940110016,
+    "mean_ms": 53.912058229925606,
+    "min_ms": 23.720425000647083,
+    "max_ms": 89.11521899972286,
+    "stddev_ms": 24.799441065959883
+  },
+  "footprint": {
+    "rated_collection_stats": {
+      "indexes": {
+        "count": 2,
+        "size": 10290464
+      },
+      "documents_size": 11725707,
+      "cache_in_use": false,
+      "cache_size": 0,
+      "cache_usage": 0
+    }
+  },
+  "concurrent": {
+    "concurrency": 8,
+    "duration_seconds": 30,
+    "wall_clock_seconds_including_setup": 30.10818801499954,
+    "reads_completed": 6553,
+    "writes_completed": 1611,
+    "read_errors": 0,
+    "write_errors": 0,
+    "connection_errors": 0,
+    "reads_per_second": 218.43333333333334,
+    "writes_per_second": 53.7,
+    "total_ops_per_second": 272.1333333333333
+  }
+}

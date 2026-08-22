@@ -1,0 +1,1 @@
+{"platform": "neo4j", "workload": "three_hop", "recorded_at": 1787336035.368859, "label": "three_hop", "count": 100, "errors": 0, "p50_ms": 147.2889154999848, "p95_ms": 416.61357814991766, "mean_ms": 188.30942342997787, "min_ms": 83.26677300010488, "max_ms": 690.3974189999644, "stddev_ms": 116.38343547851217}

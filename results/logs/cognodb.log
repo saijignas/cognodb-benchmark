@@ -1,0 +1,93 @@
+{
+  "ingest": {
+    "load_start": 1787335469.4605517,
+    "load_end": 1787335494.1881475,
+    "wall_clock_seconds": 24.727595806121826,
+    "nodes_loaded": 2644,
+    "relationships_loaded": 102893,
+    "nodes_per_second": 106.92507353850483,
+    "relationships_per_second": 4161.059603478585
+  },
+  "point_lookup": {
+    "label": "point_lookup",
+    "count": 100,
+    "errors": 0,
+    "p50_ms": 197.74138749994563,
+    "p95_ms": 198.85782545018174,
+    "mean_ms": 197.9223363300207,
+    "min_ms": 197.27920500008622,
+    "max_ms": 202.10248600005798,
+    "stddev_ms": 0.618549835903657
+  },
+  "indexed_lookup": {
+    "label": "indexed_lookup",
+    "count": 100,
+    "errors": 0,
+    "p50_ms": 197.7950929999679,
+    "p95_ms": 199.09548615021322,
+    "mean_ms": 197.9619656500381,
+    "min_ms": 197.44301100035955,
+    "max_ms": 201.08132999985173,
+    "stddev_ms": 0.6110723898064196
+  },
+  "one_hop": {
+    "label": "one_hop",
+    "count": 100,
+    "errors": 0,
+    "p50_ms": 199.47105050027858,
+    "p95_ms": 204.66014395008187,
+    "mean_ms": 200.25587427003757,
+    "min_ms": 198.03290200025003,
+    "max_ms": 208.31150300000445,
+    "stddev_ms": 2.0615784173272806
+  },
+  "two_hop": {
+    "label": "two_hop",
+    "count": 100,
+    "errors": 0,
+    "p50_ms": 321.15230149975105,
+    "p95_ms": 604.7204189497052,
+    "mean_ms": 350.78233869996893,
+    "min_ms": 223.249327999838,
+    "max_ms": 722.6436939999985,
+    "stddev_ms": 118.23094133833916
+  },
+  "three_hop": {
+    "label": "three_hop",
+    "count": 100,
+    "errors": 0,
+    "p50_ms": 1016.3635085000351,
+    "p95_ms": 1473.7536716996374,
+    "mean_ms": 1051.4755210100293,
+    "min_ms": 770.3111939999872,
+    "max_ms": 1605.8668850000686,
+    "stddev_ms": 199.70594243183535
+  },
+  "aggregation": {
+    "label": "aggregation",
+    "count": 100,
+    "errors": 0,
+    "p50_ms": 204.15222049996373,
+    "p95_ms": 207.0308753500285,
+    "mean_ms": 204.3350759899795,
+    "min_ms": 202.19506800003728,
+    "max_ms": 214.6482879998075,
+    "stddev_ms": 1.7780529134403376
+  },
+  "footprint": {
+    "note": "not observable"
+  },
+  "concurrent": {
+    "concurrency": 8,
+    "duration_seconds": 30,
+    "wall_clock_seconds_including_setup": 30.244010764999985,
+    "reads_completed": 884,
+    "writes_completed": 225,
+    "read_errors": 0,
+    "write_errors": 0,
+    "connection_errors": 0,
+    "reads_per_second": 29.466666666666665,
+    "writes_per_second": 7.5,
+    "total_ops_per_second": 36.96666666666667
+  }
+}

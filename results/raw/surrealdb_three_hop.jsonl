@@ -1,0 +1,1 @@
+{"platform": "surrealdb", "workload": "three_hop", "recorded_at": 1787345531.705164, "label": "three_hop", "count": 100, "errors": 0, "p50_ms": 625.0504395002281, "p95_ms": 736.532291500498, "mean_ms": 642.6159302199449, "min_ms": 481.8061879996094, "max_ms": 992.4550520008779, "stddev_ms": 73.00304340656841}

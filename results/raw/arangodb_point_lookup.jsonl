@@ -1,0 +1,1 @@
+{"platform": "arangodb", "workload": "point_lookup", "recorded_at": 1787342558.1702611, "label": "point_lookup", "count": 100, "errors": 0, "p50_ms": 1.1189625001861714, "p95_ms": 1.623274400117225, "mean_ms": 1.2289332000182185, "min_ms": 1.0210260006715544, "max_ms": 3.098451999903773, "stddev_ms": 0.3119426865231903}

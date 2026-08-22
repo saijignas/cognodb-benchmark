@@ -1,0 +1,1 @@
+{"platform": "memgraph", "workload": "point_lookup", "recorded_at": 1787336127.3564599, "label": "point_lookup", "count": 100, "errors": 0, "p50_ms": 0.7222729998375144, "p95_ms": 0.8622021000064705, "mean_ms": 1.2456219699879512, "min_ms": 0.6567350001205341, "max_ms": 51.606283000182884, "stddev_ms": 5.06186073125853}

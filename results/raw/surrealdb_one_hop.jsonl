@@ -1,0 +1,1 @@
+{"platform": "surrealdb", "workload": "one_hop", "recorded_at": 1787345446.4804897, "label": "one_hop", "count": 100, "errors": 0, "p50_ms": 1.2665480007854057, "p95_ms": 2.026616249895596, "mean_ms": 1.6706788100600534, "min_ms": 1.0265050004818477, "max_ms": 18.634583999300958, "stddev_ms": 2.2615796954283254}

@@ -1,0 +1,1 @@
+{"platform": "neo4j", "workload": "indexed_lookup", "recorded_at": 1787335993.4436243, "label": "indexed_lookup", "count": 100, "errors": 0, "p50_ms": 3.3593890000247484, "p95_ms": 74.03653464989475, "mean_ms": 12.096213379995788, "min_ms": 1.9367439999768976, "max_ms": 77.54770299970914, "stddev_ms": 22.80017423194155}

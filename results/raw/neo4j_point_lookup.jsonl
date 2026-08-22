@@ -1,0 +1,1 @@
+{"platform": "neo4j", "workload": "point_lookup", "recorded_at": 1787335991.3348353, "label": "point_lookup", "count": 100, "errors": 0, "p50_ms": 4.069828999945457, "p95_ms": 77.39485300030537, "mean_ms": 15.077583709971805, "min_ms": 2.7350739997018536, "max_ms": 79.6350480000001, "stddev_ms": 25.642410606187518}

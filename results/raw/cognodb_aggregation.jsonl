@@ -1,0 +1,1 @@
+{"platform": "cognodb", "workload": "aggregation", "recorded_at": 1787335760.8537467, "label": "aggregation", "count": 100, "errors": 0, "p50_ms": 204.15222049996373, "p95_ms": 207.0308753500285, "mean_ms": 204.3350759899795, "min_ms": 202.19506800003728, "max_ms": 214.6482879998075, "stddev_ms": 1.7780529134403376}

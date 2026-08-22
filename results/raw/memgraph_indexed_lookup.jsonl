@@ -1,0 +1,1 @@
+{"platform": "memgraph", "workload": "indexed_lookup", "recorded_at": 1787336127.549618, "label": "indexed_lookup", "count": 100, "errors": 0, "p50_ms": 0.7212354998955561, "p95_ms": 1.005760899829511, "mean_ms": 1.7699048400027095, "min_ms": 0.6602930002372887, "max_ms": 51.6092889997708, "stddev_ms": 7.079865896880751}

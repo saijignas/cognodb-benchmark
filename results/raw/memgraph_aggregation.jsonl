@@ -1,0 +1,1 @@
+{"platform": "memgraph", "workload": "aggregation", "recorded_at": 1787336141.2274191, "label": "aggregation", "count": 100, "errors": 0, "p50_ms": 2.974680999841439, "p95_ms": 21.07895405004, "mean_ms": 5.627314289999958, "min_ms": 2.445713999804866, "max_ms": 48.69874499991056, "stddev_ms": 7.796971007331475}

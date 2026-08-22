@@ -1,0 +1,1 @@
+{"platform": "arangodb", "workload": "ingest", "recorded_at": 1787342558.0125837, "load_start": 1787342551.7472057, "load_end": 1787342558.0124912, "wall_clock_seconds": 6.265285491943359, "nodes_loaded": 2644, "relationships_loaded": 102893, "nodes_per_second": 422.00790425272174, "relationships_per_second": 16422.71531477886}

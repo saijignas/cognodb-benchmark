@@ -1,0 +1,1 @@
+{"platform": "arangodb", "workload": "aggregation", "recorded_at": 1787342952.319169, "label": "aggregation", "count": 100, "errors": 0, "p50_ms": 72.51162499869679, "p95_ms": 80.31153940110016, "mean_ms": 53.912058229925606, "min_ms": 23.720425000647083, "max_ms": 89.11521899972286, "stddev_ms": 24.799441065959883}

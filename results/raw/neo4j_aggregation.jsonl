@@ -1,0 +1,1 @@
+{"platform": "neo4j", "workload": "aggregation", "recorded_at": 1787336038.1161947, "label": "aggregation", "count": 100, "errors": 0, "p50_ms": 4.876419500078555, "p95_ms": 76.25219524986733, "mean_ms": 13.972880759993132, "min_ms": 2.8317670003161766, "max_ms": 82.66713599959985, "stddev_ms": 22.830436517791803}

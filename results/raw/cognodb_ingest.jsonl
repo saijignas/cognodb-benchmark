@@ -1,0 +1,1 @@
+{"platform": "cognodb", "workload": "ingest", "recorded_at": 1787335494.188238, "load_start": 1787335469.4605517, "load_end": 1787335494.1881475, "wall_clock_seconds": 24.727595806121826, "nodes_loaded": 2644, "relationships_loaded": 102893, "nodes_per_second": 106.92507353850483, "relationships_per_second": 4161.059603478585}

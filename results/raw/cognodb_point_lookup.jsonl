@@ -1,0 +1,1 @@
+{"platform": "cognodb", "workload": "point_lookup", "recorded_at": 1787335517.952835, "label": "point_lookup", "count": 100, "errors": 0, "p50_ms": 197.74138749994563, "p95_ms": 198.85782545018174, "mean_ms": 197.9223363300207, "min_ms": 197.27920500008622, "max_ms": 202.10248600005798, "stddev_ms": 0.618549835903657}
