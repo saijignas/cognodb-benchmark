@@ -1,5 +1,7 @@
 # CognoDB Graph Database Benchmark
 
+> **TL;DR:** This repo benchmarks CognoDB Cloud against four self-hosted graph databases (Neo4j, Memgraph, ArangoDB, SurrealDB) on identical MovieLens-100K data and workloads, under matched 0.5 vCPU / 512 MiB RAM / 512 MiB swap ceilings. Memgraph was fastest across ingest and most latency workloads; CognoDB's latency is dominated by network round-trip time rather than query cost; Neo4j could not operate under a 256 MiB ceiling and required explicit JVM tuning; ArangoDB and SurrealDB both exposed real `three_hop` correctness/scalability issues in our initial adapter implementations, found only at real dataset scale, then diagnosed and fixed (Section 13). **Honest limitation:** storage parity across the four local platforms was not achievable in this environment and is fully disclosed, not hidden (Section 10). Every reported number is backed by raw committed JSONL evidence.
+
 ## 1. Executive Summary
 
 This repository benchmarks **CognoDB Cloud** against four other graph databases —
@@ -23,6 +25,14 @@ repository, not assumption.
 This README is written to be understandable without having watched the
 development process — every non-obvious decision is explained with the
 evidence behind it.
+
+## Engineering Takeaways
+
+- **Resource ceilings must be validated empirically, not assumed.** Neo4j failed under a 256 MiB cgroup despite explicit heap/page-cache tuning; the failure was confirmed empirically as `OOMKilled=true` / exit 137 rather than inferred from documentation alone.
+- **Equivalent queries across query languages require an explicit workload contract.** Cypher, AQL, and SurrealQL express the traversal differently; the initial AQL and SurrealDB implementations lacked the explicit co-rater deduplication that the staged Cypher implementation already enforced. Defining one canonical workload contract in `benchmark/adapters/base.py` and validating all implementations against it prevented semantic drift.
+- **Synthetic correctness tests do not replace real-scale testing.** The traversal issues passed the small hand-built correctness tests and only surfaced against the dense MovieLens graph, demonstrating why both correctness tests and real-dataset stress testing matter.
+- **A disclosed limitation is more credible than a hidden one.** The storage-parity gap could not be closed within the managed Codespaces environment, so it is reported explicitly with the evidence behind it rather than omitted from the methodology.
+- **Ephemeral infrastructure failures are part of real engineering.** Connection resets and Codespace restarts were investigated, distinguished from database failures, and incorporated into the evidence trail rather than silently discarded.
 
 ## 2. Databases Tested
 
@@ -115,6 +125,19 @@ platforms due to infrastructure limits outside this benchmark's control.
 - The benchmark runner (`benchmark/core/runner.py`) is entirely
   platform-agnostic — it drives every platform through the same
   `GraphDBAdapter` interface and contains no platform-specific logic.
+
+```mermaid
+flowchart LR
+    Client["Benchmark Harness (Python)"] --> Adapter["GraphDBAdapter interface"]
+    Adapter --> Bolt["Bolt/Cypher adapter"]
+    Adapter --> Arango["AQL adapter"]
+    Adapter --> Surreal["SurrealQL adapter"]
+    Bolt --> CognoDB[("CognoDB Cloud — remote managed")]
+    Bolt --> Neo4j[("Neo4j — local container")]
+    Bolt --> Memgraph[("Memgraph — local container")]
+    Arango --> ArangoDB[("ArangoDB — local container")]
+    Surreal --> SurrealDB[("SurrealDB — local container")]
+```
 
 ## 6. Workload Definitions
 
