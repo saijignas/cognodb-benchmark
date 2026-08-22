@@ -1,4 +1,4 @@
-﻿import time
+import time
 
 from neo4j import GraphDatabase
 

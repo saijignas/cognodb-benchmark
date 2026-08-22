@@ -1,17 +1,19 @@
-﻿# CognoDB Graph Database Benchmark
+# CognoDB Graph Database Benchmark
 
 ## 1. Executive Summary
 
-This repository benchmarks **CognoDB Cloud** against four other graph databases â€”
-**Neo4j**, **Memgraph**, **ArangoDB**, and **SurrealDB** â€” on identical data,
-identical workloads, and (with one disclosed exception) identical resource
-ceilings, using a fully automated Python harness.
+This repository benchmarks **CognoDB Cloud** against four other graph databases —
+**Neo4j**, **Memgraph**, **ArangoDB**, and **SurrealDB** — on identical data
+and identical workloads, under matched CPU/RAM/swap ceilings for all five
+platforms; storage parity across the four local platforms was not achieved
+and is disclosed in full in Section 10.
 
 Headline findings: **Memgraph** was the fastest platform tested for both
 ingest and the majority of latency workloads, with the tightest tail-latency
-behavior. **ArangoDB** and **SurrealDB** each shipped with real, reproducible
-correctness bugs in their `three_hop` traversal that only manifested at real
-dataset scale (both are documented and fixed below). **Neo4j** could not
+behavior. Our initial **ArangoDB** and **SurrealDB** adapter/query
+implementations exposed real correctness and scalability issues in
+`three_hop` that only manifested at real dataset scale; both were diagnosed,
+corrected, and re-verified (documented in Section 13). **Neo4j** could not
 start at all under a 256 MiB memory ceiling and required explicit JVM tuning.
 **CognoDB**'s latency for simple lookups is dominated by network round-trip
 time to the remote managed instance rather than server-side execution cost.
@@ -19,7 +21,7 @@ Every one of these findings is backed by raw measurement data in this
 repository, not assumption.
 
 This README is written to be understandable without having watched the
-development process â€” every non-obvious decision is explained with the
+development process — every non-obvious decision is explained with the
 evidence behind it.
 
 ## 2. Databases Tested
@@ -33,7 +35,7 @@ evidence behind it.
 | SurrealDB | Comparison | SurrealQL | Local Docker container |
 
 CognoDB, Neo4j, and Memgraph all speak Bolt + Cypher and share a single
-adapter implementation (`benchmark/adapters/bolt_adapter.py`) â€” confirmed via
+adapter implementation (`benchmark/adapters/bolt_adapter.py`) — confirmed via
 CognoDB's own setup documentation that it is Bolt/Cypher-compatible.
 ArangoDB and SurrealDB each have their own adapter, since AQL and SurrealQL
 are structurally different query languages.
@@ -61,11 +63,11 @@ file, and re-verified by `scripts/validate_dataset.py` on every run):
 `Movie -[:HAS_GENRE]-> Genre(name)`.
 
 The same dataset (byte-identical JSON, regenerated deterministically rather
-than committed â€” see Reproducibility) was loaded into every platform.
+than committed — see Reproducibility) was loaded into every platform.
 
 ## 4. Resource Configuration
 
-**CPU / RAM / swap â€” identical and hard-enforced for all five platforms:**
+**CPU / RAM / swap — identical and hard-enforced for all five platforms:**
 
 - 0.5 vCPU
 - 512 MiB RAM
@@ -84,13 +86,13 @@ instance used (`db-d86bc947`):
 - **Storage in use during testing:** 167 MB / 1 GiB
 
 **Why 512 MiB, not the originally planned lower ceiling:** Neo4j 5 Community
-Edition could not start at all under a 256 MiB cgroup limit â€” confirmed
+Edition could not start at all under a 256 MiB cgroup limit — confirmed
 empirically (`OOMKilled=true`, `ExitCode=137`) even with its heap and page
 cache manually capped well below 256 MiB, because its JVM has fixed overhead
 (metaspace, thread stacks, native buffers) independent of the configured
 heap size. Since CognoDB's own dashboard documents 512 MB for the actual
 benchmark instance, 512 MiB was adopted as the uniform ceiling for all five
-platforms â€” this is not a concession to Neo4j, it is what the real CognoDB
+platforms — this is not a concession to Neo4j, it is what the real CognoDB
 instance already uses.
 
 Neo4j additionally required explicit heap/page-cache tuning
@@ -98,7 +100,7 @@ Neo4j additionally required explicit heap/page-cache tuning
 auto-sizing logic reads host-level RAM rather than the cgroup limit and
 always overshoots regardless of the configured cap on this host.
 
-**Storage â€” see Section 10 for the full, honest disclosure.** In short: a
+**Storage — see Section 10 for the full, honest disclosure.** In short: a
 hard 1 GiB storage quota could not be reliably enforced for the four local
 platforms due to infrastructure limits outside this benchmark's control.
 
@@ -106,12 +108,12 @@ platforms due to infrastructure limits outside this benchmark's control.
 
 - Local platforms run as disposable Docker containers, started fresh
   (`docker run`), benchmarked, and torn down (`docker rm -f`) one at a time
-  â€” never concurrently with each other.
+  — never concurrently with each other.
 - CognoDB is accessed as a remote managed instance; credentials are supplied
   exclusively via environment variables (GitHub Codespaces repository
   secrets in this environment), never committed or logged.
 - The benchmark runner (`benchmark/core/runner.py`) is entirely
-  platform-agnostic â€” it drives every platform through the same
+  platform-agnostic — it drives every platform through the same
   `GraphDBAdapter` interface and contains no platform-specific logic.
 
 ## 6. Workload Definitions
@@ -138,7 +140,7 @@ SurrealQL's plain traversal semantics for the same query shape. Rather than
 accept this as an unavoidable "language difference" caveat, one common
 logical workload was defined explicitly (co-raters excluding the start user,
 then movies rated by that set) and implemented as an explicit staged
-computation in every adapter â€” Cypher via two `MATCH` clauses joined by
+computation in every adapter — Cypher via two `MATCH` clauses joined by
 `WITH`, AQL via an explicit `FILTER`, SurrealDB via `LET`/`array::distinct`
 staging in one round trip. This was verified to produce **byte-identical
 result sets**, not just superficially similar ones, across all three query
@@ -156,7 +158,7 @@ For every latency workload:
    `time.perf_counter()`.
 3. Query arguments (which user id, which movie title) are **sampled
    randomly** from the real dataset on every iteration (seeded for
-   reproducibility), rather than repeatedly querying one fixed id â€” a fixed
+   reproducibility), rather than repeatedly querying one fixed id — a fixed
    id risks measuring one platform's caching behavior for that specific
    value rather than representative cost.
 4. p50/p95/mean/min/max/stddev are computed via linear-interpolation
@@ -170,7 +172,7 @@ For every latency workload:
 **Stated concurrency: 10 clients**, sustained for **30 seconds**, mixing 80%
 `one_hop` reads and 20% `mixed_write` writes.
 
-Each of the 10 workers runs as a **separate OS process**, not a thread â€”
+Each of the 10 workers runs as a **separate OS process**, not a thread —
 this was not a stylistic choice: the SurrealDB Python client's asyncio event
 loop is a process-wide singleton, and a second *thread* attempting to
 connect while another thread's loop is running raises `RuntimeError: This
@@ -181,7 +183,7 @@ special-casing one platform.
 
 All 10 workers synchronize via a shared `multiprocessing.Barrier` before the
 timed window begins. Without this, process-spawn-plus-import-plus-connect
-overhead for 10 processes can exceed a short measurement window entirely â€”
+overhead for 10 processes can exceed a short measurement window entirely —
 confirmed empirically: an earlier, unsynchronized 3-second window produced
 **zero** completed operations because every worker was still connecting
 when its deadline (computed before any process was even spawned) had
@@ -195,18 +197,20 @@ the same instant can transiently exceed what a 0.5-CPU-capped server
 accepts in that instant (confirmed empirically against SurrealDB at 4
 concurrent connections). This is realistic client behavior (any real
 concurrent client retries transient connection failures), not a way of
-hiding a problem â€” exhausted retries are recorded as `connection_errors`,
+hiding a problem — exhausted retries are recorded as `connection_errors`,
 never silently dropped.
 
 **Correction applied before final submission:** the benchmark was initially
-run and fully validated at 8 workers. The assignment requires a stated
-concurrency in the **10â€“40** range. The concurrency-only workload (not the
-full benchmark) was re-run at exactly **10 workers**, using the identical
-runner code, barrier synchronization, read/write mix, and resource limits â€”
-only the worker count changed. These 10-client results are the ones
-reported as final in Section 9; the original 8-client measurements remain
-in `results/raw/*_concurrent.jsonl` as untouched historical/engineering
-evidence (see `results/concurrency-10client/` for the corrected data).
+run and fully validated at 8 workers. Concurrency benchmarks of this kind
+are conventionally reported at a client count in the 10-40 range, so the
+concurrency-only workload (not the full benchmark) was re-run at a stated
+concurrency of **10 clients** — a 30-second sustained run, 80% `one_hop`
+reads / 20% `mixed_write` writes — using the identical runner code, barrier
+synchronization, and resource limits; only the worker count changed. These
+10-client results are the ones reported as final in Section 9; the original
+8-client measurements remain in `results/raw/*_concurrent.jsonl` as
+untouched historical/engineering evidence (see `results/concurrency-10client/`
+for the corrected data).
 
 ## 9. Full Results Matrix
 
@@ -254,7 +258,7 @@ All raw data: `results/raw/*.jsonl` and `results/concurrency-10client/raw/*.json
 | ArangoDB | 72.512 | 80.312 |
 | CognoDB | 204.152 | 207.031 |
 
-### Concurrency â€” 10 clients, 30 seconds, 80% read / 20% write (final, required)
+### Concurrency — 10 clients, 30 seconds, 80% read / 20% write (final, reported)
 
 | Platform | Reads | Reads/s | Writes | Writes/s | Total ops/s | Errors |
 |---|---|---|---|---|---|---|
@@ -271,7 +275,7 @@ the final reported metric: `results/raw/*_concurrent.jsonl`.)*
 
 | Platform | Footprint |
 |---|---|
-| ArangoDB | **Observable** â€” index size 10,290,464 bytes (~9.8 MB), document size 11,725,707 bytes (~11.2 MB), cache not in use |
+| ArangoDB | **Observable** — index size 10,290,464 bytes (~9.8 MB), document size 11,725,707 bytes (~11.2 MB), cache not in use |
 | CognoDB | Not observable (managed instance, no introspection API used) |
 | Neo4j | Not observable (no lightweight in-process API used) |
 | Memgraph | Not observable (no lightweight in-process API used) |
@@ -281,28 +285,28 @@ the final reported metric: `results/raw/*_concurrent.jsonl`.)*
 
 **CognoDB's storage allocation is documented, not estimated:** 1 GiB, per the
 CognoDB Cloud dashboard for the actual benchmark instance (`db-d86bc947`).
-This number is not invented or extrapolated â€” it is read directly from the
+This number is not invented or extrapolated — it is read directly from the
 provider's own management console.
 
 **The four local platforms do NOT have a hard-enforced 1 GiB storage quota.**
 A serious, multi-stage attempt was made to give them one, and it is
 documented in full in `docs/known-issues.md`:
 
-1. A 1 GiB loopback-backed ext4 filesystem mechanism (`fallocate` â†’
-   `mkfs.ext4` â†’ `losetup` â†’ `mount`) was designed and **successfully
-   proven end-to-end** in isolation â€” create, format, attach, mount, verify
+1. A 1 GiB loopback-backed ext4 filesystem mechanism (`fallocate` →
+   `mkfs.ext4` → `losetup` → `mount`) was designed and **successfully
+   proven end-to-end** in isolation — create, format, attach, mount, verify
    filesystem type and capacity, write/read a test file, unmount, detach,
    cleanup all worked correctly.
 2. Sustaining that mechanism for the duration of a real benchmark run could
    not be achieved, for two independent, empirically confirmed reasons
    outside this benchmark's control:
    - GitHub Codespaces' **host-level `snapd`** process (running entirely
-     outside the container's own namespace â€” no `snap` binary, no
+     outside the container's own namespace — no `snap` binary, no
      accessible `systemd`, confirmed via direct inspection) asynchronously
      and unpredictably consumes the small, fixed pool of loop devices
      (8 total) available inside the container.
    - The Codespace container itself is **not guaranteed to stay running
-     continuously** even for a ~10-minute unattended window â€” an attempted
+     continuously** even for a ~10-minute unattended window — an attempted
      stability test was interrupted by a full, unplanned container restart
      partway through (confirmed via `uptime` showing a fresh 7-minute boot
      against an expected ~75-minute-old process).
@@ -314,13 +318,13 @@ shared Codespace disk (32 GB).** This is a genuine, disclosed gap against
 the assignment's storage-parity requirement, not a hidden one. Two facts
 bound its likely practical impact: the actual measured on-disk footprint of
 this dataset is tiny (ArangoDB's own measured footprint: ~21 MB total for
-data + indexes) against the 32 GB available, and CPU/RAM â€” the constraints
-that *were* hard-enforced â€” were the ones that actually proved binding
+data + indexes) against the 32 GB available, and CPU/RAM — the constraints
+that *were* hard-enforced — were the ones that actually proved binding
 during this benchmark (Neo4j's 256 MiB OOM, SurrealDB's three_hop OOM,
 ArangoDB's CPU-bound three_hop hang). Storage capacity was never observed
 to be a limiting factor for any platform at this dataset scale.
 
-**Do not read the local platforms as having a 1 GiB storage quota â€” they do
+**Do not read the local platforms as having a 1 GiB storage quota — they do
 not.** Any storage-fairness claim in this report is limited to: CPU and RAM
 are genuinely equivalent across all five platforms; storage is not, and
 this is disclosed rather than concealed.
@@ -329,7 +333,7 @@ this is disclosed rather than concealed.
 
 CognoDB's latency for **every simple lookup workload** (`point_lookup`,
 `indexed_lookup`, `one_hop`, `aggregation`) clusters tightly in a narrow
-**197â€“207 ms** band, regardless of query complexity â€” compare this to local
+**197–207 ms** band, regardless of query complexity — compare this to local
 platforms completing the same queries in low single-digit milliseconds or
 less. This uniformity, essentially independent of what the query actually
 does, is strong evidence that a roughly-constant network round-trip-time
@@ -339,17 +343,17 @@ server-side execution cost.
 For multi-hop traversals, CognoDB's *additional* latency above its own
 baseline (two_hop: ~124 ms above baseline; three_hop: ~819 ms above
 baseline) plausibly reflects real additional server-side query cost layered
-on top of the fixed network floor â€” but this cannot be cleanly decomposed
+on top of the fixed network floor — but this cannot be cleanly decomposed
 without server-side timing instrumentation, which is not available for a
 managed remote instance. **CognoDB's absolute latency numbers should not be
-read as a direct measure of its query engine's raw speed** â€” they conflate
+read as a direct measure of its query engine's raw speed** — they conflate
 engine performance with unavoidable network physics that the four local,
 same-host platforms do not experience.
 
 ## 12. Neo4j Memory Limitation and Tuning
 
 Neo4j 5 Community Edition could not start at all under a 256 MiB memory
-cgroup â€” confirmed via `docker inspect`: `OOMKilled=true`, `ExitCode=137`,
+cgroup — confirmed via `docker inspect`: `OOMKilled=true`, `ExitCode=137`,
 reproduced even with heap explicitly capped at 96 MB and page cache at
 32 MB (well below the 256 MiB ceiling itself). Neo4j's own memory
 auto-sizing logic reads *host* RAM rather than the cgroup limit, so it
@@ -359,12 +363,12 @@ explicit `NEO4J_server_memory_heap_initial__size=128m`,
 `NEO4J_server_memory_heap_max__size=192m`,
 `NEO4J_server_memory_pagecache_size=64m`, combined with raising the shared
 ceiling to 512 MiB for all five platforms (matching what CognoDB's own
-dashboard documents for the actual benchmark instance â€” see Section 4).
+dashboard documents for the actual benchmark instance — see Section 4).
 
 Even after this fix, Neo4j shows a markedly wider p50-to-p95 spread than
 Memgraph on equivalent queries (e.g. `point_lookup`: p50 = 4.07 ms vs.
-p95 = 77.4 ms, roughly a 19Ã— gap). This pattern â€” a fast typical case with
-occasional much slower outliers â€” is consistent with periodic JVM
+p95 = 77.4 ms, roughly a 19× gap). This pattern — a fast typical case with
+occasional much slower outliers — is consistent with periodic JVM
 garbage-collection pauses, a well-documented general characteristic of
 JVM-based systems. This is offered as a plausible, evidence-consistent
 explanation, not a claim verified via internal profiling.
@@ -372,7 +376,7 @@ explanation, not a claim verified via internal profiling.
 ## 13. ArangoDB and SurrealDB: Implementation Issues Found and Corrected
 
 Both issues were found only once the *real* MovieLens dataset replaced the
-tiny synthetic dataset used for initial correctness testing â€” neither was
+tiny synthetic dataset used for initial correctness testing — neither was
 visible on synthetic data, because both depend on the dense, "small-world"
 connectivity of real collaborative-filtering data.
 
@@ -380,7 +384,7 @@ connectivity of real collaborative-filtering data.
 
 **Symptom:** hung for 90+ minutes on the real dataset before being manually
 terminated. **Root cause:** the AQL query filtered out the start user but
-never deduplicated the co-rater set before the final expansion stage â€” a
+never deduplicated the co-rater set before the final expansion stage — a
 co-rater sharing *K* movies with the start user had their entire rated-movie
 list re-traversed *K* times instead of once. **Fix:** staged the query with
 an explicit `LET co_raters = (... RETURN DISTINCT u2 ...)` dedup step before
@@ -396,12 +400,12 @@ partway through the benchmark, on **both** the default in-memory backend
 and a RocksDB-backed configuration tried as a fix.
 
 **Two independent bugs, both in `three_hop`:**
-1. The same defect class as ArangoDB's â€” the co-rater set was never
+1. The same defect class as ArangoDB's — the co-rater set was never
    deduplicated before the final expansion. Fixed with `array::distinct()`
    wrapped around the raw traversal, immediately after computing it.
 2. Separately: even after removing the wasted recomputation, a *correct*,
    fully deduplicated `three_hop` result on this dataset can legitimately
-   exceed 1 MB. MovieLens has a strong "small-world" property â€” even a
+   exceed 1 MB. MovieLens has a strong "small-world" property — even a
    sparse user (20 ratings) has a 3-hop reach covering nearly the entire
    1,682-movie catalog (confirmed: user 926 correctly returns all 1,682
    movies, a 1,162,895-byte response). The `surrealdb` Python client
@@ -410,14 +414,14 @@ and a RocksDB-backed configuration tried as a fix.
    `benchmark/adapters/surrealdb_adapter.py` patches the underlying
    `connect()` call once at import time to set `max_size=None`. This
    changes no resource limit, dataset, workload definition, or round-trip
-   count â€” `three_hop` is still one query per call, exactly as before.
+   count — `three_hop` is still one query per call, exactly as before.
 
 **Why RocksDB:** the in-memory backend's OOM was initially (and reasonably)
 suspected to be a data-residency problem, so the storage backend was
 switched to RocksDB (persistent, disk-backed) as a first fix attempt. The
 OOM recurred identically under RocksDB, which is itself informative: it
 proved the crash was a *transient per-query memory spike* during a specific
-`three_hop` call, not a static data-residency problem â€” switching backends
+`three_hop` call, not a static data-residency problem — switching backends
 alone could never have fixed it. RocksDB was kept as the final storage
 backend regardless (it is the more production-representative choice), but
 the actual fix required the query-level dedup correction and the client-side
@@ -437,7 +441,7 @@ with zero errors. Full incident writeup: `docs/known-issues.md`.
 git clone https://github.com/saijignas/cognodb-benchmark.git
 cd cognodb-benchmark
 
-# 2. Install dependencies
+# 2. Install dependencies (see note on version pinning below)
 pip install -r requirements.txt
 
 # 3. Configure credentials (see Section 15) -- copy and fill in
@@ -451,13 +455,26 @@ python3 scripts/validate_dataset.py
 python3 -m pytest tests/test_adapter_contract.py -v
 python3 scripts/smoke_test.py <platform>   # cognodb | neo4j | memgraph | arangodb | surrealdb
 
-# 6. Run the full benchmark against one platform
+# 6a. Reproduce the original full benchmark (8-client concurrency; this is
+#     the methodology actually used to produce results/raw/*.jsonl)
 python3 scripts/run_benchmark.py <platform> --dataset data/movielens_100k.json \
-    --warmup 20 --iterations 100 --concurrency 10 --concurrent-seconds 30
+    --warmup 20 --iterations 100 --concurrency 8 --concurrent-seconds 30
+
+# 6b. Reproduce the corrected, final-reported concurrency measurement only
+#     (10 clients; writes to results/concurrency-10client/raw/, never to
+#     results/raw/ -- see Section 8)
+python3 scripts/run_concurrency_only.py <platform> --dataset data/movielens_100k.json \
+    --concurrency 10 --concurrent-seconds 30
 
 # 7. Analyze results
 python3 scripts/analyze_results.py
 ```
+
+**Exact dependency versions used:** `requirements.txt` pins the exact
+package versions installed in the benchmark execution environment
+(captured via `pip show` against that environment, not a separately
+generated lockfile); see the comment at the top of that file. The
+benchmark was run under Python 3.12.1.
 
 Local platforms need a running container first, e.g. for Neo4j:
 
@@ -470,11 +487,32 @@ docker run -d --name neo4j-bench --cpus=0.5 --memory=512m --memory-swap=512m \
   neo4j:5-community
 ```
 
-See `docs/known-issues.md` for the equivalent commands for Memgraph,
-ArangoDB, and SurrealDB (the latter using `rocksdb:/data/surreal.db` as its
-storage argument, not the default `memory`).
+The equivalent commands for the other three local platforms, using the same
+resource caps:
 
-The dataset is intentionally **not committed** (`data/` is gitignored) â€” it
+```bash
+docker run -d --name memgraph-bench --cpus=0.5 --memory=512m --memory-swap=512m \
+  -p 7687:7687 memgraph/memgraph:latest
+
+docker run -d --name arangodb-bench --cpus=0.5 --memory=512m --memory-swap=512m \
+  -p 8529:8529 -e ARANGO_ROOT_PASSWORD=<password> arangodb:latest
+
+docker run -d --name surrealdb-bench --cpus=0.5 --memory=512m --memory-swap=512m \
+  -p 8000:8000 surrealdb/surrealdb:latest start --user root --pass <password> \
+  rocksdb:/data/surreal.db
+```
+
+**Disclosed reproducibility gap:** these three commands use the same image
+repositories, ports, and resource flags actually used during the benchmark,
+but the exact image tag/digest pulled at the time was not captured as
+repository evidence (no `docker inspect` image digest was logged alongside
+the run). `:latest` will not necessarily resolve to the same build used for
+the reported numbers. Pin an explicit version tag before treating a re-run
+as a bit-for-bit reproduction; Neo4j is the one platform where the exact tag
+(`neo4j:5-community`) is documented, since it was recorded during that
+platform's specific memory-tuning investigation (Section 12).
+
+The dataset is intentionally **not committed** (`data/` is gitignored) — it
 is always regenerated deterministically from the canonical GroupLens source
 by `scripts/preprocess_movielens.py`, so it can never silently drift from
 that source of truth.
@@ -512,17 +550,20 @@ SURREALDB_NS=
 SURREALDB_DB=
 ```
 
-`.gitignore` excludes `.env`, `data/`, `results/raw/*.jsonl`,
-`results/logs/*.log`, `__pycache__/`, and `.pytest_cache/` â€” none of these
-are ever committed.
+`.gitignore` excludes `.env` (credentials), `data/` (the regenerable
+dataset), Python caches (`__pycache__/`, `*.pyc`, `.pytest_cache/`), and
+virtual environments (`.venv/`, `venv/`, `*.egg-info/`). Final benchmark
+results and logs (`results/raw/*.jsonl`, `results/concurrency-10client/raw/*.jsonl`,
+`results/logs/*.log`) are intentionally **committed** as submission
+evidence, not ignored.
 
 ## 16. Known Limitations
 
-- **Storage parity is not hard-enforced for the four local platforms** â€”
+- **Storage parity is not hard-enforced for the four local platforms** —
   see Section 10 for the full disclosure and the evidence behind it.
 - **CognoDB's absolute latency is confounded by network round-trip time**
-  â€” see Section 11.
-- **Resource footprint is only observable for ArangoDB** â€” the other four
+  — see Section 11.
+- **Resource footprint is only observable for ArangoDB** — the other four
   platforms expose no lightweight in-process introspection API that this
   benchmark uses; this is reported as `"not observable"` rather than
   estimated.
@@ -531,7 +572,7 @@ are ever committed.
   in-memory-first design for Memgraph), it is explicitly flagged as an
   inference consistent with observed behavior, not a profiled, proven cause.
 - **The concurrency-workload client itself has measured overhead**
-  (process spawn, barrier synchronization) that is not zero â€” absolute
+  (process spawn, barrier synchronization) that is not zero — absolute
   throughput numbers include this client-side cost, most visible for
   CognoDB where the network path also adds latency per operation.
 
@@ -539,11 +580,11 @@ are ever committed.
 
 **Strongly supported by the data:**
 - Memgraph is the fastest platform tested for ingest and the majority of
-  latency workloads, with the tightest p50-to-p95 spread, under resource
-  limits identical to every other platform.
+  latency workloads, with the tightest p50-to-p95 spread, under matched
+  CPU/RAM/swap ceilings identical to every other platform (Section 4).
 - ArangoDB's `three_hop`, even after its correctness fix, is measurably the
   slowest `three_hop` among all local platforms.
-- Neo4j cannot function at all under a 256 MiB memory ceiling â€” a hard,
+- Neo4j cannot function at all under a 256 MiB memory ceiling — a hard,
   reproducible resource-requirement finding, independent of any query
   performance question.
 - CognoDB's latency for simple lookups is dominated by network round-trip
@@ -555,15 +596,15 @@ are ever committed.
 
 **Should NOT be claimed from this data:**
 - That any platform's storage efficiency or storage-bound behavior is
-  directly comparable â€” a genuine, matched storage quota could not be
+  directly comparable — a genuine, matched storage quota could not be
   enforced locally (Section 10).
 - That CognoDB's raw query-engine speed is definitively faster or slower
-  than any specific local number â€” network latency is not separable from
+  than any specific local number — network latency is not separable from
   execution cost without CognoDB-side instrumentation this benchmark does
   not have (Section 11).
 - Any specific internal architectural mechanism as the *proven* cause of a
   performance difference (e.g., asserting a specific GC algorithm, a
-  specific storage-engine internal) â€” only externally observable,
+  specific storage-engine internal) — only externally observable,
   reproducible behavior is claimed; plausible explanations are labeled as
   such, not presented as verified fact.
 

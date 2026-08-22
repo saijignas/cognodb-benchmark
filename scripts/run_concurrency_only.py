@@ -1,9 +1,10 @@
-﻿"""
+"""
 Run ONLY the concurrent read/write workload against a single platform, to
-correct the concurrency level to 10 clients (the assignment requires a
-stated concurrency in the 10-40 range; the original full benchmark used
-8). This does not modify or re-run any other workload -- ingest and the
-six latency workloads are untouched from the original run.
+correct the concurrency level to 10 clients (concurrency benchmarks of
+this kind are conventionally reported at a client count in the 10-40
+range; the original full benchmark used 8). This does not modify or
+re-run any other workload -- ingest and the six latency workloads are
+untouched from the original run.
 
 This calls the exact same, already-tested BenchmarkRunner.run_ingest()
 and BenchmarkRunner.run_concurrent_workload() used by the original

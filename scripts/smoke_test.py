@@ -1,4 +1,4 @@
-﻿"""
+"""
 Generalized correctness smoke test, run against one platform's own live
 connection at a time. Loads a small, hand-verified synthetic dataset and
 asserts every GraphDBAdapter method against exact expected values --

@@ -1,4 +1,4 @@
-﻿import functools
+import functools
 import time
 
 import surrealdb.connection_ws as _surrealdb_connection_ws

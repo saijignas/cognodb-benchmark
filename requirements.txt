@@ -1,6 +1,13 @@
-neo4j>=5.26,<6
-python-arango>=8.1,<9
-surrealdb>=0.4,<1
-python-dotenv>=1.0,<2
-numpy>=1.26,<3
-pytest>=8.0,<9
+# Exact versions installed in the benchmark execution environment
+# (captured via `pip show` against that environment, not a separately
+# generated lockfile -- see README Section 14). websockets is pinned
+# explicitly, though only a transitive dependency of surrealdb, because
+# benchmark/adapters/surrealdb_adapter.py monkeypatches a websockets
+# connection internal whose location depends on this exact version.
+neo4j==5.28.4
+python-arango==8.3.3
+surrealdb==0.4.1
+python-dotenv==1.2.3
+numpy==2.5.2
+pytest==8.4.2
+websockets==14.2

@@ -1,4 +1,4 @@
-﻿"""
+"""
 Run the full benchmark suite against one platform.
 
 Usage:
@@ -43,8 +43,15 @@ def main():
     )
     parser.add_argument("--warmup", type=int, default=20)
     parser.add_argument("--iterations", type=int, default=100)
+    # Default concurrency (8) matches the original full-benchmark run
+    # recorded in results/raw/. The final-reported concurrency correction
+    # (10 clients) is applied via scripts/run_concurrency_only.py, or by
+    # passing --concurrency 10 explicitly (see README Section 8).
     parser.add_argument("--concurrency", type=int, default=8)
-    parser.add_argument("--concurrent-seconds", type=int, default=10)
+    # 30 seconds matches every recorded run (results/raw/*_concurrent.jsonl
+    # all show duration_seconds=30); this default previously said 10 and
+    # was never actually used to produce a reported measurement.
+    parser.add_argument("--concurrent-seconds", type=int, default=30)
     parser.add_argument("--seed", type=int, default=1337)
     args = parser.parse_args()
 

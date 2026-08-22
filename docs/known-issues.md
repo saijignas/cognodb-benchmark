@@ -1,4 +1,4 @@
-﻿# Known issues and incidents
+# Known issues and incidents
 
 ## SurrealDB in-memory backend OOM under the real MovieLens dataset
 
@@ -58,7 +58,7 @@ unilaterally.
 two separate, independent bugs were compounding, both in `three_hop`:
 
 1. **Missing deduplication of the co-rater set**, the same defect class
-   as the ArangoDB bug: `$co_raters` was built from a raw traversal
+   as the ArangoDB adapter's query bug: `$co_raters` was built from a raw traversal
    (`->rated->movie<-rated<-user`) that was never deduplicated -- a
    co-rater sharing K movies with the start user appeared K times.
    `array::complement($co_raters, [$u])` only removes exact matches to

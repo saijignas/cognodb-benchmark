@@ -1,4 +1,4 @@
-﻿"""
+"""
 Read raw JSONL benchmark results and print a summary matrix across
 platforms and workloads.
 

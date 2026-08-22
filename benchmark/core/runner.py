@@ -1,4 +1,4 @@
-﻿import concurrent.futures
+import concurrent.futures
 import multiprocessing
 import random
 import time
