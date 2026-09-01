@@ -22,5 +22,11 @@ jobs:
       # implements the required interface) -- it needs no live database.
       # scripts/smoke_test.py, which does need real running graph databases,
       # is intentionally not run here; that's what the benchmark itself is for.
+      # `python -m pytest` (not the bare `pytest` script) so the repo
+      # root is added to sys.path and `import benchmark` resolves --
+      # otherwise it only works locally by accident of how it happens to
+      # be invoked there. Scoped to tests/ so pytest's default *_test.py
+      # pattern doesn't also try to collect scripts/smoke_test.py, which
+      # needs live database connections and isn't a pytest test at all.
       - name: Run adapter contract tests
-        run: pytest -v
+        run: python -m pytest tests/ -v
