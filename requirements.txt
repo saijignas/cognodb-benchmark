@@ -11,3 +11,4 @@ python-dotenv==1.2.3
 numpy==2.5.2
 pytest==8.4.2
 websockets==14.2
+typing_extensions>=4.0
