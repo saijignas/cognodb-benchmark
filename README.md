@@ -1,4 +1,5 @@
 # CognoDB Graph Database Benchmark
+![CI](https://github.com/saijignas/cognodb-benchmark/actions/workflows/ci.yml/badge.svg)
 
 > **TL;DR:** This repo benchmarks CognoDB Cloud against four self-hosted graph databases (Neo4j, Memgraph, ArangoDB, SurrealDB) on identical MovieLens-100K data and workloads, under matched 0.5 vCPU / 512 MiB RAM / 512 MiB swap ceilings. Memgraph was fastest across ingest and most latency workloads; CognoDB's latency is dominated by network round-trip time rather than query cost; Neo4j could not operate under a 256 MiB ceiling and required explicit JVM tuning; ArangoDB and SurrealDB both exposed real `three_hop` correctness/scalability issues in our initial adapter implementations, found only at real dataset scale, then diagnosed and fixed (Section 13). **Honest limitation:** storage parity across the four local platforms was not achievable in this environment and is fully disclosed, not hidden (Section 10). Every reported number is backed by raw committed JSONL evidence.
 
