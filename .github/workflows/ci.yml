@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # tests/test_adapter_contract.py is a structural check (every adapter
+      # implements the required interface) -- it needs no live database.
+      # scripts/smoke_test.py, which does need real running graph databases,
+      # is intentionally not run here; that's what the benchmark itself is for.
+      - name: Run adapter contract tests
+        run: pytest -v
